@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-import Interface
+from lib import Interface
 
 NAME = "TULKKI"
 

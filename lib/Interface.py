@@ -1,5 +1,5 @@
-import Statement as st
-import Parser as prs
+import lib.Statement as st
+import lib.Parser as prs
 
 class Interface():
   
