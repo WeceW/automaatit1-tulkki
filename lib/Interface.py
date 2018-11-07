@@ -20,6 +20,11 @@ class Interface():
       else:
         print(statement.tokens)
 
+        if parser.checkStructure(statement.sentence):
+          print(">>>>>> LAUSE OK")
+        else:
+          print(">>>>>> VIRHEELLINEN LAUSE/SYNTAKSI")
+
         # TODO
         statement.tree = parser.parseTree(statement.tokens)
         if not statement.tree:
