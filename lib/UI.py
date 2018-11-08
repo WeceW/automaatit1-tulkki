@@ -1,7 +1,7 @@
 import lib.Statement as st
 import lib.Parser as prs
 
-class Interface():
+class UI():
   
   def __init__(self, name):
     self.printHeader(name)
@@ -14,21 +14,22 @@ class Interface():
       print(statement)
 
       parser = prs.Parser()
-      statement.tokens = parser.tokenize(statement.sentence)
+      statement.tokens = parser.lexicalAnalysis(statement.sentence)
       if not statement.tokens:
-        print("Lause sisältää virheellisiä merkkejä!")
+        print(parser.printMsg("syntax_error"))
       else:
+        # Statement has acceptable words (and only those)
         print(statement.tokens)
 
         if parser.checkStructure(statement.sentence):
           print(">>>>>> LAUSE OK")
         else:
-          print(">>>>>> VIRHEELLINEN LAUSE/SYNTAKSI")
+          print(parser.printMsg("syntax_error"))
 
         # TODO
         statement.tree = parser.parseTree(statement.tokens)
         if not statement.tree:
-          print("Lause on virheellinen!") # = EI OLE TAUTOLOGIA?
+          print(parser.printMsg("syntax_error")) # = EI OLE TAUTOLOGIA?
         else:
           # TODO
           parser.translate(statement)

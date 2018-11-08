@@ -1,31 +1,44 @@
 
 class Parser():
 
-  lexicon = ['', '~', '^', 'or', '->', '<->', '(', ')', 'p', 'q']
+  OPERATORS   = ['~', '^', 'or', '->', '<->']
+  OPERANDS    = ['p', 'q']
+  PARENTHESES = ['(', ')']
+  LEXICON     = OPERATORS + OPERANDS + PARENTHESES
 
   def __init__(self):
+    #self.lexicon = self.operators + self.operands + self.parentheses
     pass
-    #self.lexicon = LEX
 
-  def tokenize(self, statement_str):
+  def lexicalAnalysis(self, statement_str):
     tokens = []
-    for part in statement_str.split():
-      if part in self.lexicon:
-        tokens.append(part)
-      else:
-        # check each character of parts
-        for char in part:
-          if char in self.lexicon:
+    st = statement_str.replace(' ', '')
+    i = 0
+    # TODO: 
+    # This loop is now assuming that length of a word 
+    # in the lexicon is between 1-3 characters. Could me more general...
+    while i < len(st):
+      char = st[i]
+      if char in self.LEXICON:
+        tokens.append(char)
+      elif i+1 < len(st):
+        i += 1
+        char += st[i]
+        if char in self.LEXICON:
+          tokens.append(char)
+        elif i+2 < len(st):
+          i += 1
+          char += st[i]
+          if char in self.LEXICON:
             tokens.append(char)
-
-          # TODO:
-          # Now spaces is required to split items with more than 1 character.
-          # -> error when the statement is 'p->q' instead of 'p -> q'... :(
-          # Should there actually supposed to be used some sort of an automata here?
-
-          elif char != ' ':
-            # False symbols, statement not accepted
+          else:
             return []
+        else:
+          return []
+      else:
+        return []
+      i += 1
+
     return tokens
 
 
@@ -64,3 +77,6 @@ class Parser():
   def translate(self, tree):
     return 0
 
+  def printMsg(self, msg):
+    if msg == "syntax_error":
+      return "Virheellinen syntaksi. Sallitut sanat ovat " + ", ".join(self.LEXICON)

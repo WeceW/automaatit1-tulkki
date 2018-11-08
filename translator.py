@@ -1,12 +1,12 @@
 #!/usr/bin/python3
 
-from lib import Interface
+from lib import UI
 
 NAME = "TULKKI"
 
 def main():
-  interface = Interface.Interface(NAME)
-  interface.run()
+  ui = UI.UI(NAME)
+  ui.run()
 
 if __name__ == "__main__":
   main()
