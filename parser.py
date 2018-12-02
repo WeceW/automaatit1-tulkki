@@ -1,5 +1,7 @@
 import sys
 from Tree import Tree
+from copy import deepcopy
+from itertools import product
 
 # Labels
 L_LPAR = '('
@@ -50,8 +52,6 @@ rules = [
 ]
 
 
-stack = [(Term,T_END), (Rule,N_S)]
-
 
 ###########################################################
 ########               L E X I C A L               ########
@@ -61,6 +61,10 @@ def lexer(inputstring):
     tokens = []
     labels = []
     i = 0
+
+    if inputstring[0] != L_LPAR or inputstring[len(inputstring)-1] != L_RPAR:
+        return [[T_INVALID], ["lause tulee alkaa merkillä '(' ja päättyä merkkiin ')'"]]
+
     while i < len( inputstring ):
         c = inputstring[ i ]
         if c == '-':      # Check '->'
@@ -145,6 +149,7 @@ def lexer(inputstring):
 ####                  A N A L Y S I S                  ####
 ###########################################################
 def syntacticAnalysis(tokens, labels):
+    stack = [(Term,T_END), (Rule,N_S)]
     parsetree = Tree()
     node = parsetree
     position = 0
@@ -251,9 +256,25 @@ def testStatement(terms):
 ####                 T A U T O L O G Y                 ####
 #                      (true / false)                     #
 ###########################################################
-def checkTautology(tokens, labels):
-    # TODO
-    pass
+def checkTautology(tokens, labels, ids):
+
+    n = len(ids)
+    combinations = list(product(range(2), repeat=n))
+
+    for comb in combinations:
+        c = {}
+        for i, key in enumerate(ids.keys()):
+            c[key] = str(comb[i])
+        l = assignTruthValues(deepcopy(labels), tokens, c)
+        parseTree = syntacticAnalysis(tokens, l)
+
+        terms = []
+        postorder(parseTree, terms)
+
+        if testStatement(terms) == 0:
+            return False
+
+    return True
 
 
 ###########################################################
@@ -266,14 +287,27 @@ def askTruthValues(labels, tokens):
         if token == T_ID:
             if labels[i] not in variables:
                 while True:
-                    val = input("   Anna totuusarvo (0/1) muuttujalle %s:\n" % (labels[i]))
+                    val = input("   Anna totuusarvo (0/1) muuttujalle %s:\n   " % (labels[i]))
                     if val in ['0', '1']:
                         variables[labels[i]] = val
                         break
                     else:
-                        print("\n   Virheellinen totuusarvo!\n")
+                        print("\n   Virheellinen totuusarvo!\n   ")
     for i, token in enumerate(tokens):
         if token == T_ID:
             for key, val in variables.items():
                 if labels[i] == key:
                     labels[i] = val
+    return variables
+
+###########################################################
+########                A S S I G N                ########
+####              T R U T H   V A L U E S              ####
+###########################################################
+def assignTruthValues(labels, tokens, values):
+    for i, token in enumerate(tokens):
+        if token == T_ID:
+            for key, val in values.items():
+                if labels[i] == key:
+                    labels[i] = val
+    return labels
