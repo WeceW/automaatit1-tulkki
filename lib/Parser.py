@@ -1,44 +1,52 @@
 
 class Parser():
 
-  OPERATORS   = ['~', '^', 'or', '->', '<->']
-  OPERANDS    = ['p', 'q']
-  PARENTHESES = ['(', ')']
-  LEXICON     = OPERATORS + OPERANDS + PARENTHESES
+  # Terminals
+  T_LPAR = 0
+  T_RPAR = 1
+  T_ID = 2
+  T_OP = 3
+  T_END = 4
+  T_NEG = 5
+  T_INVALID = 6
+
+  # OPERATORS   = ['~', '^', 'or', '->', '<->']
+  # OPERANDS    = ['p', 'q']
+  # PARENTHESES = ['(', ')']
+  # LEXICON     = OPERATORS + OPERANDS + PARENTHESES
 
   def __init__(self):
     #self.lexicon = self.operators + self.operands + self.parentheses
     pass
 
-  def lexicalAnalysis(self, statement_str):
+  def lexicalAnalysis(self, inputstring):
+    print('Lexical analysis') 
     tokens = []
-    st = statement_str.replace(' ', '')
     i = 0
-    # TODO: 
-    # This loop is now assuming that length of a word 
-    # in the lexicon is between 1-3 characters. Could me more general...
-    while i < len(st):
-      char = st[i]
-      if char in self.LEXICON:
-        tokens.append(char)
-      elif i+1 < len(st):
+    while i < len( inputstring ):
+        c = inputstring[ i ]
+        if c == '-':      # Check '->'
+            i += 1
+            c = inputstring[ i ]
+            tokens.append(self.T_OP if c == '>' else self.T_INVALID)
+        elif c == '<':      # Check '<->'
+            i += 1
+            c = inputstring[i]
+            if c == '-':
+                i += 1
+                c = inputstring[i]
+                tokens.append(self.T_OP if c == '>' else self.T_INVALID)
+            else: tokens.append(self.T_INVALID)
+        elif c == 'v': tokens.append(self.T_OP)
+        elif c == '&': tokens.append(self.T_OP)
+        elif c == 'p': tokens.append(self.T_ID)
+        elif c == 'q': tokens.append(self.T_ID)
+        elif c == '(': tokens.append(self.T_LPAR)
+        elif c == ')': tokens.append(self.T_RPAR)
+        elif c == '~': tokens.append(self.T_NEG)
+        else: tokens.append(self.T_INVALID)
         i += 1
-        char += st[i]
-        if char in self.LEXICON:
-          tokens.append(char)
-        elif i+2 < len(st):
-          i += 1
-          char += st[i]
-          if char in self.LEXICON:
-            tokens.append(char)
-          else:
-            return []
-        else:
-          return []
-      else:
-        return []
-      i += 1
-
+    tokens.append(self.T_END)
     return tokens
 
 
