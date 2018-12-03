@@ -1,6 +1,5 @@
 import sys
 from Tree import Tree
-from copy import deepcopy
 from itertools import product
 
 # Labels
@@ -215,11 +214,15 @@ def expandParseTree(node, token, labels, position):
 ####                     O R D E R                     ####
 #          (collect values from the parse tree)           #
 ###########################################################
-def postorder(tree, terms):
+def getTermsInPostOrder(tree, terms, ids):
     if tree != None:
-        postorder(tree.getLeft(), terms)
-        postorder(tree.getRight(), terms)
-        terms.append(tree.getData())
+        getTermsInPostOrder(tree.getLeft(), terms, ids)
+        getTermsInPostOrder(tree.getRight(), terms, ids)
+        if tree.getData() in ids:
+            # add actual thruth value (1/0) instead of a variable name (e.g. p_1)
+            terms.append(ids[tree.getData()])
+        else:
+            terms.append(tree.getData())
 
 
 ###########################################################
@@ -243,10 +246,10 @@ def testStatement(terms):
                 stack.append(1 if p == q else 0)
         elif term == L_NEG:
             stack.append(0 if stack.pop() == 1 else 1)
-        elif term == '0' or term == '1':
-            stack.append(int(term))
+        elif term == 0 or term == 1:
+            stack.append(term)
         else:
-            # TODO: Invalid term (Suvh a term should not be encountered at this point though...)
+            # TODO: Invalid term (Such a term should not be encountered at this point though...)
             pass
     return stack.pop()
 
@@ -256,24 +259,17 @@ def testStatement(terms):
 ####                 T A U T O L O G Y                 ####
 #                      (true / false)                     #
 ###########################################################
-def checkTautology(tokens, labels, ids):
+def checkTautology(parseTree, ids):
 
-    n = len(ids)
-    combinations = list(product(range(2), repeat=n))
-
+    combinations = list(product([0, 1], repeat=len(ids)))
     for comb in combinations:
         c = {}
         for i, key in enumerate(ids.keys()):
-            c[key] = str(comb[i])
-        l = assignTruthValues(deepcopy(labels), tokens, c)
-        parseTree = syntacticAnalysis(tokens, l)
-
+            c[key] = comb[i]
         terms = []
-        postorder(parseTree, terms)
-
+        getTermsInPostOrder(parseTree, terms, c)
         if testStatement(terms) == 0:
             return False
-
     return True
 
 
@@ -287,27 +283,11 @@ def askTruthValues(labels, tokens):
         if token == T_ID:
             if labels[i] not in variables:
                 while True:
-                    val = input("   Anna totuusarvo (0/1) muuttujalle %s:\n   " % (labels[i]))
+                    val = input("   Anna totuusarvo (0/1) muuttujalle %s: " % (labels[i]))
+                    print()
                     if val in ['0', '1']:
-                        variables[labels[i]] = val
+                        variables[labels[i]] = int(val)
                         break
                     else:
                         print("\n   Virheellinen totuusarvo!\n   ")
-    for i, token in enumerate(tokens):
-        if token == T_ID:
-            for key, val in variables.items():
-                if labels[i] == key:
-                    labels[i] = val
     return variables
-
-###########################################################
-########                A S S I G N                ########
-####              T R U T H   V A L U E S              ####
-###########################################################
-def assignTruthValues(labels, tokens, values):
-    for i, token in enumerate(tokens):
-        if token == T_ID:
-            for key, val in values.items():
-                if labels[i] == key:
-                    labels[i] = val
-    return labels

@@ -1,6 +1,5 @@
 import sys
 import parser
-from copy import deepcopy
 
 #########################################################################
 #              T U L K K I   L A U S E L O G I I K A L L E              #
@@ -19,31 +18,39 @@ from copy import deepcopy
 #########################################################################
 
 def main():
+    print(' +' + '~'*45 + '+')
+    print(' | T U L K K I   L A U S E L O G I I K A L L E |')
+    print(' +' + '~'*45 + '+')
+
     inputstring, tautology = getArgs()
     tokens, labels = parser.lexer(inputstring)
     if parser.T_INVALID not in tokens:
-        print("   Leksikaalinen analyysi ok.")
+        print("\n   Leksikaalinen analyysi ok.")
 
-        print('   Lause: ', inputstring.replace('v', ' v ').replace('&', ' & ').replace('->', ' -> ').replace('< ->', ' <-> '))
-        original_labels = deepcopy(labels)
-        # Set the truth-values for variables p & q in list 'labels'
-        ids = parser.askTruthValues(labels, tokens)
-        
-        # Syntactic analysis returns valid parse tree if ok, else 'False'
         parseTree = parser.syntacticAnalysis(tokens, labels)
-        if parseTree:
+        if parseTree:   # (Syntactic analysis returns valid parse tree if ok, else 'False')
             print("   Syntaktinen analyysi ok.")
             parseTree.printTree()
             
+            print('   LAUSE:\n  ', inputstring.replace('v', ' v ').replace('&', ' & ').replace('->', ' -> ').replace('< ->', ' <-> '))
+            ids = parser.askTruthValues(labels, tokens)
             terms = [] # Use 'terms' as a stack of all the terms from the parse tree (in post order)
-            parser.postorder(parseTree, terms)
+            parser.getTermsInPostOrder(parseTree, terms, ids)
 
+            # Form 'pretty' strings for output:
             statement = ' '.join(labels).replace('~ ', '~').replace('( ', '(').replace(' )', ')')
-            print("   Lause", statement, "ON", "TOSI" if parser.testStatement(terms) else "EPÄTOSI")
+            statementWithThruthValues = statement
+            for key, val in ids.items():
+                statementWithThruthValues = statementWithThruthValues.replace(key, str(val))
+            
+            print(' +' + '~'*(len(statement)+28) + '|')
+            print(" | Lause", statementWithThruthValues, "ON", "TOSI" if parser.testStatement(terms) else "EPÄTOSI")
 
             if tautology:
-                tautology = parser.checkTautology(tokens, original_labels, ids)
-                print("   Lause", statement, "ON TAUTOLOGIA" if tautology else "EI OLE TAUTOLOGIA")
+                tautology = parser.checkTautology(parseTree, ids)
+                print(" | \n | Lause", statement, "ON TAUTOLOGIA" if tautology else "EI OLE TAUTOLOGIA")
+            print(' +' + '~'*(len(statement)+28) + '|')
+            print('   Ohjelma lopetettu.')
 
         else:
             print("   Tarkista syntaksi!")
